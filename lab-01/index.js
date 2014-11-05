@@ -50,8 +50,8 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 			var href;
 			doc('li.menu-item a').each(function(index, element) {
 				var item = doc(element);
-				if (item.text() == 'Kursplan') {
-					return item.attr('href');
+				if (item.text() == 'Kursplan' || item.text() == 'Syllabus' || item.text() == 'Course Syllabus') {
+					href = item.attr('href');
 				}
 			});
 			return href;
