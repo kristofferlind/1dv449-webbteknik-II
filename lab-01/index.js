@@ -2,6 +2,7 @@ var request = require('request'),
 	cheerio = require('cheerio'),
 	mongo = require('mongodb').MongoClient,
 	express = require('express'),
+	q = require('q'),
 	app = express();
 
 mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
@@ -10,6 +11,7 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 
 	var scrape = function() {
 		console.log('scraping..')
+		var deferred = q.defer();
 
 		var numberOfPages;
 
@@ -30,11 +32,18 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 		}
 
 		var getPageCourses = function(doc) {
+			var deferredPageCourses = q.defer();
 			var courses = doc('ul#blogs-list li');
 			courses.each(function(index, courseDoc) {
 				var courseData = doc(courseDoc);
-				getCourseInfo(courseData, doc);
+				getCourseInfo(courseData, doc).then(function() {
+					if (courses.length == index + 1) {
+						deferredPageCourses.resolve();
+					}
+				})
 			});
+
+			return deferredPageCourses.promise;
 		};
 
 		var getCourseSyllabusLink = function(doc) {
@@ -58,6 +67,7 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 		}
 
 		var getCourseInfo = function(courseDoc) {
+			var deferredCourseInfo = q.defer();
 			var course = {
 				name: courseDoc.find('div.item-title a').text() || 'no information',
 				url: courseDoc.find('div.item-title a').attr('href') || 'no information'
@@ -82,8 +92,12 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 					metaDB.update({name: 'lastModified'}, {name: 'lastModified', lastModified: new Date()}, {upsert: true}, function(err, data) {
 						//saved..
 					});
+					deferredCourseInfo.resolve();
 				});
+			} else {
+				deferredCourseInfo.resolve();
 			}
+			return deferredCourseInfo.promise;
 		};
 
 		var getNumberOfPages = function(doc) {
@@ -107,18 +121,29 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 
 			var doc = cheerio.load(html);
 			numberOfPages = getNumberOfPages(doc);
+			var finished = [];
 
-			for (var i = 1; i < numberOfPages; i++) {
+			for (var i = 1; i <= numberOfPages; i++) {
 				var url = 'https://coursepress.lnu.se/kurser/?bpage=' + i;
-				getPage(url, function(err, status, html) {
-					if (err) {
-						throw err;
-					}
-					var doc = cheerio.load(html);
-					getPageCourses(doc);
-				});
+				(function(i) {
+					getPage(url, function(err, status, html) {
+						if (err) {
+							throw err;
+						}
+						var doc = cheerio.load(html);
+
+						getPageCourses(doc).then(function() {
+							finished.push(i);
+							if (finished.length === numberOfPages) {
+								deferred.resolve();
+							}
+						});
+					});
+				}(i));
 			};
 		});
+
+		return deferred.promise;
 	}
 
 	// //This solution doesn't follow instructions, but is definately better (solution below follows instructions)
@@ -143,13 +168,12 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 			var comparisonDate = new Date();
 			comparisonDate.setMinutes(comparisonDate.getMinutes() - 5);
 			if (meta.lastModified.getTime() < comparisonDate.getTime()) {
-				scrape();
-				setTimeout(function() {
+				scrape().then(function() {
 					courseDB.find({}).toArray(function(err, data) {
 						data.push({meta: {courseCount: data.length, lastScrape: meta.lastModified}});
 						res.json(200, data);
 					});
-				}, 30000);	//using q and doing this on resolve would be a better solution
+				});
 			} else {
 				courseDB.find({}).toArray(function(err, data) {
 					data.push({meta: {courseCount: data.length, lastScrape: meta.lastModified}});
