@@ -22,8 +22,7 @@ Webbplatsens innehåll ändras drastiskt, materialet som skrapas kan bli tvivela
 Automatiskt satta selektorer för element.
 
 ###Välj ut två punkter kring din kod du tycker är värd att diskutera vid redovisningen. Det kan röra val du gjort, tekniska lösningar eller lösningar du inte är riktigt nöjd med.
-Användande av timeout vid skrapning i samband med request, lösning med promises(q) hade varit klart bättre. Lösningen med skrapning som "bakgrundsjobb" är ännu bättre (beroende på trafik).
-Koden kunde delats upp i moduler, annars inget som känns anmärkningsvärt bra/dåligt.
+Borde använt mig av q.all för de fall då flera promises ska inväntas. Lösningen med skrapning som "bakgrundsjobb" är ännu bättre (beroende på trafik). Koden borde delats upp i moduler, annars inget som känns anmärkningsvärt bra/dåligt.
 
 ###Hitta ett rättsfall som handlar om webbskrapning. Redogör kort för detta.
 LinkedIn 2014, en grupp hackare använde sig av amazon web services för att skapa massvis med falska medlemmar och sedan använda dessa för att skrapa LinkedIn. Detta är förbjudet enligt deras användaravtal. Algoritm för att ta sig förbi captcha användes. LinkedIn har senare kommit fram till att skrapningen utförts av HiringSolved, som i sin tur sålde sin insamlade data.

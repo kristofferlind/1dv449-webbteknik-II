@@ -78,7 +78,7 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 					var doc = cheerio.load(html);
 					course.code = doc('div#header-wrapper li a').last().text() || 'no information';
 					course.syllabus = getCourseSyllabusLink(doc) || 'no information';
-					course.description = doc('div.entry-content p').text() || 'no information';
+					course.description = doc('div.entry-content').first('p').text() || 'no information';
 					course.latest = {
 						header: doc('section article.post').first().find('h1.entry-title a').text() || 'no information',
 						date: extractDate(doc('section article.post').first().find('p.entry-byline').text()) || 'no information',
