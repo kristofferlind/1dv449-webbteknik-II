@@ -34,10 +34,12 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 		var getPageCourses = function(doc) {
 			var deferredPageCourses = q.defer();
 			var courses = doc('ul#blogs-list li');
+			var counter = 0;
 			courses.each(function(index, courseDoc) {
 				var courseData = doc(courseDoc);
 				getCourseInfo(courseData, doc).then(function() {
-					if (courses.length == index + 1) {
+					counter++;
+					if (counter == courses.length) {
 						deferredPageCourses.resolve();
 					}
 				})
@@ -66,6 +68,20 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 			return null;
 		}
 
+		var getDescriptionForMalformedPage = function(doc) {
+			var entry = doc('div.entry-content').first();
+			entry.find('h1, h2').remove();
+			var description = entry.text();
+			return description.trim();
+		}
+
+		var getDescription = function(doc) {
+			var entry = doc('div.entry-content').first();
+			entry.find('h1, h2, article').remove();
+			var description = entry.find('p').text();
+			return description.trim();
+		}
+
 		var getCourseInfo = function(courseDoc) {
 			var deferredCourseInfo = q.defer();
 			var course = {
@@ -78,7 +94,7 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 					var doc = cheerio.load(html);
 					course.code = doc('div#header-wrapper li a').last().text() || 'no information';
 					course.syllabus = getCourseSyllabusLink(doc) || 'no information';
-					course.description = doc('div.entry-content').first('p').text() || 'no information';
+					course.description = getDescription(doc) || getDescriptionForMalformedPage(doc) || 'no information';
 					course.latest = {
 						header: doc('section article.post').first().find('h1.entry-title a').text() || 'no information',
 						date: extractDate(doc('section article.post').first().find('p.entry-byline').text()) || 'no information',
@@ -135,7 +151,13 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 						getPageCourses(doc).then(function() {
 							finished.push(i);
 							if (finished.length === numberOfPages) {
-								deferred.resolve();
+								// deferred.resolve();
+
+								// Sometimes scraping isn't really complete on resolve. 
+								// No idea what i've missed(figuring out q.all would probably solve this)
+								setTimeout(function() {
+									deferred.resolve();
+								}, 15000);
 							}
 						});
 					});
@@ -146,18 +168,17 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 		return deferred.promise;
 	}
 
-	// //This solution doesn't follow instructions, but is definately better (solution below follows instructions)
-	// //Scrape on init, then every 5 minutes
-	// scrape();
+	//This solution doesn't follow instructions, but is definately better (solution below follows instructions)
+	//Scrape every 5min. Scheduling this would be an improvement. (And probably just doing it once a day)
 	// setTimeout(function() {
 	// 	scrape();
-	// }, 300000);		//5min, 1-4hours or maybe once a day would be better
+	// }, 300000);		//Every 5min
 
 	// app.get('/', function(req, res) {
 	// 	metaDB.findOne({}, function(err, meta) {
-	// 			courseDB.find({}).toArray(function(err, data) {
+	// 		courseDB.find({}, {_id: 0}).sort({name: 1}).toArray(function(err, data) {
 	// 			data.push({meta: {courseCount: data.length, lastScrape: meta.lastModified}});
-	// 			res.json(200, data);
+	// 			res.status(200).json(data);
 	// 		});
 	// 	});
 	// });
@@ -169,15 +190,15 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 			comparisonDate.setMinutes(comparisonDate.getMinutes() - 5);
 			if (meta.lastModified.getTime() < comparisonDate.getTime()) {
 				scrape().then(function() {
-					courseDB.find({}).toArray(function(err, data) {
+					courseDB.find({}, {_id: 0}).sort({name: 1}).toArray(function(err, data) {
 						data.push({meta: {courseCount: data.length, lastScrape: meta.lastModified}});
-						res.json(200, data);
+						res.status(200).json(data);
 					});
 				});
 			} else {
-				courseDB.find({}).toArray(function(err, data) {
+				courseDB.find({}, {_id: 0}).sort({name: 1}).toArray(function(err, data) {
 					data.push({meta: {courseCount: data.length, lastScrape: meta.lastModified}});
-					res.json(200, data);
+					res.status(200).json(data);
 				});
 			}
 		})
@@ -186,4 +207,3 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 	app.listen('8000');
 	console.log('Listening on port 8000');
 });
-
