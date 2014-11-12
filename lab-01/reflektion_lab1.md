@@ -19,7 +19,7 @@ Webbplatsen läggs ned, alternativ resurs måste hittas och det måste skapas en
 Webbplatsens innehåll ändras drastiskt, materialet som skrapas kan bli tvivelaktigt eller direkt olagligt. Detta resulterar i sin tur i att den egna webbplatsen blir olaglig.
 
 ###Tänk dig att du skulle skrapa en sida gjord i ASP.NET WebForms. Vad för extra problem skulle man kunna få då?
-Automatiskt satta selektorer för element.
+Viewstate måste hämtas ut och skickas med i requests samt automatiskt satta selektorer för element.
 
 ###Välj ut två punkter kring din kod du tycker är värd att diskutera vid redovisningen. Det kan röra val du gjort, tekniska lösningar eller lösningar du inte är riktigt nöjd med.
 Borde använt mig av q.all för de fall då flera promises ska inväntas. Lösningen med skrapning som "bakgrundsjobb" är ännu bättre (beroende på trafik). Koden borde delats upp i moduler, annars inget som känns anmärkningsvärt bra/dåligt.

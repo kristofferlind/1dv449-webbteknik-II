@@ -102,13 +102,12 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 					}
 
 					courseDB.update({name: course.name}, course, {upsert: true}, function(err, data) {
-						//saved..
+						deferredCourseInfo.resolve();
 					});
 
 					metaDB.update({name: 'lastModified'}, {name: 'lastModified', lastModified: new Date()}, {upsert: true}, function(err, data) {
 						//saved..
 					});
-					deferredCourseInfo.resolve();
 				});
 			} else {
 				deferredCourseInfo.resolve();
@@ -202,6 +201,12 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 				});
 			}
 		})
+	});
+
+	app.get('/coursenames', function(req, res) {
+		courseDB.find({}, {_id:0, name:1}).sort({name:1}).toArray(function(err, data) {
+			res.status(200).json(data);
+		});
 	});
 
 	app.listen('8000');
