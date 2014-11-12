@@ -63,7 +63,7 @@ mongo.connect('mongodb://localhost:27017/coursepress', function(err, db) {
 			var re = new RegExp("[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}");
 			var date = dateString.match(re);
 			if (date && date[0]) {
-				return Date.parse(date[0]);
+				return new Date(date[0]);
 			}
 			return null;
 		}
