@@ -49,7 +49,6 @@
     sendMessage: function () {
 
         if (MessageBoard.textField.value == "") return;
-        MessageBoard.textField.value = "";
         // Make call to ajax
         $.ajax({
             contentType: "application/json",
@@ -58,6 +57,7 @@
             data: JSON.stringify({ Name: MessageBoard.nameField.value, Message: MessageBoard.textField.value })
         }).done(function (data) {
             //alert("Your message is saved! Reload the page for watching it");
+            MessageBoard.textField.value = "";
         });
 
     },
@@ -73,11 +73,12 @@
 
         document.getElementById("nrOfMessages").innerHTML = MessageBoard.messages.length;
     },
-    renderMessage: function (messageID) {
-        //clean history - TODO: MOVE THIS
+    cleanHistory: function () {
         if (MessageBoard.messages.length > MessageBoard.maxHistory) {
             MessageBoard.messages.splice(0, MessageBoard.messages.length - MessageBoard.maxHistory);
         }
+    },
+    renderMessage: function (messageID) {
 
         // Message div
         var div = document.createElement("div");
@@ -100,6 +101,8 @@
 
         // Message text
         var text = document.createElement("p");
+
+        //textContent hade varit bättre här, dock fungerar inte radbrytningar då..
         text.innerHTML = MessageBoard.messages[messageID].getHTMLText();
         div.appendChild(text);
 
@@ -159,11 +162,10 @@ var Connector = {
             });
         }
         chatHub.client.receiveMessage = function (chatMessage) {
-            console.log(chatMessage);
-            MessageBoard.textField.value = "";
             var message = new Message(chatMessage.Name + " said:\n" + chatMessage.Message, new Date(chatMessage.Date));
             var messageID = MessageBoard.messages.push(message) - 1;
             MessageBoard.renderMessage(messageID);
+            document.getElementById("nrOfMessages").innerHTML = MessageBoard.messages.length;
         }
     },
     socket: function () {

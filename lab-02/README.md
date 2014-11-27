@@ -43,14 +43,15 @@ $q = "SELECT id FROM users WHERE username = :username AND password = :password";
 $params = array(':username' => $u, ':password' => $p);
 ```
 
-testa: 0;var date=new Date(); do{curDate = new Date();}while(curDate-date<10000)
+test: 0;var date=new Date(); do{curDate = new Date();}while(curDate-date<10000)
+test ok
 
 sanera: ' " \ ; { }
 
 ---
 
 ###Säkerhetshål
-Data till server saneras inte - inte helt säker, men tror att det skulle gå att få php kod från användare att köras på servern
+Data till server saneras inte - inte helt säker, men tror att det skulle gå att få php kod från användare att köras på servern, tror även att det skulle gå att få in shell via databasen.
 ###Hur det kan utnyttjas
 Exekvering av kod på server alternativt på samtliga klienters datorer vid output
 ###Vilken skada det kan orsaka

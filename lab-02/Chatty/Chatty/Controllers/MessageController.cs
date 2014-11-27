@@ -1,6 +1,7 @@
 ﻿using Chatty.App_Infrastructure;
 using Chatty.Models;
 using Microsoft.AspNet.SignalR;
+using Microsoft.Security.Application;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using System.Web.Http;
 
 namespace Chatty.Controllers
 {
+    [System.Web.Http.Authorize]
     public class MessageController : ApiController
     {
         IMessageRepository messageRepository;
@@ -53,6 +55,8 @@ namespace Chatty.Controllers
         // POST api/message
         public void Post(ChatMessage chatMessage)
         {
+            chatMessage.Name = Encoder.HtmlEncode(chatMessage.Name);
+            chatMessage.Message = Encoder.HtmlEncode(chatMessage.Message);
             messageRepository.Add(chatMessage);
         }
 
