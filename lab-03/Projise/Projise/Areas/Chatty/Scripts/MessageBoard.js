@@ -35,16 +35,20 @@
         });
     },
     setMessages: function (data) {
-        MessageBoard.messages = [];
-        //MessageBoard.messageArea.innerHTML = "";
-        data.forEach(function (item) {
-            var message = new Message(item.Name + " said:\n" + item.Message, new Date(item.Date));
-            var messageID = MessageBoard.messages.push(message) - 1;
-            //MessageBoard.renderMessage(messageID);
-        });
-        MessageBoard.renderMessages();
+        if (data) {
 
-        document.getElementById("nrOfMessages").innerHTML = MessageBoard.messages.length;
+            MessageBoard.messages = [];
+            //MessageBoard.messageArea.innerHTML = "";
+            data.forEach(function (item) {
+                var message = new Message(item.Name + " said:\n" + item.Message, new Date(item.Date));
+                var messageID = MessageBoard.messages.push(message) - 1;
+                //MessageBoard.renderMessage(messageID);
+            });
+            MessageBoard.renderMessages();
+
+            document.getElementById("nrOfMessages").innerHTML = MessageBoard.messages.length;
+        }
+
     },
     sendMessage: function () {
 
@@ -93,7 +97,7 @@
         }
 
         var imgClock = document.createElement("img");
-        imgClock.src = "../Content/pic/clock.png";
+        imgClock.src = "Areas/Chatty/Content/pic/clock.png";
         imgClock.alt = "Show creation time";
 
         aTag.appendChild(imgClock);
@@ -173,7 +177,7 @@ var Connector = {
     }
 }
 
-//Connector.signalr();    //Ingen fallback till Connector.poll - Det finns inget scenario där egna implementationen fungerar men inte signalr
-Connector.poll();
+Connector.signalr();    //Ingen fallback till Connector.poll - Det finns inget scenario där egna implementationen fungerar men inte signalr
+//Connector.poll();
 
 window.onload = MessageBoard.init;
